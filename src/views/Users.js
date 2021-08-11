@@ -8,8 +8,19 @@ import {
   Row,
   Col,
   UncontrolledTooltip,
-  Button
+  Button,
+  Modal, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter,
+  Form, 
+  FormGroup, 
+  Label, 
+  Input, 
+  FormText 
 } from "reactstrap";
+
+import { Container, Button as FloatingButton} from 'react-floating-action-button'
 
 import PanelHeader from "components/PanelHeader/PanelHeader.js";
 import { tbody } from "variables/general";
@@ -17,8 +28,15 @@ import { tbody } from "variables/general";
 function Users() {
 
   const thead = ["ID", "Nome", "Data de Nascimento", "Email", "Opções"]
+  
   const [users, setUsers] = useState(false);
   const [can, setCan] = useState(true);
+  const [modal, setModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [userId, setUserId] = useState("");
+  const [nome, setNome] = useState("");
+  const [datanasc, setDatanasc] = useState("");
+  const [email, setEmail] = useState("");
 
   async function getUsers() {
     await fetch('http://localhost:3001').then(response => {
@@ -40,9 +58,13 @@ function Users() {
       });
   }
 
-  /*function updateUser(id,data) {
-    fetch(`http://localhost:3001/user/${id}`, {
-      method: 'UPDATE',
+  function createUser(nome, datanasc, email) {
+    fetch('http://localhost:3001/user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({nome, datanasc, email}),
     })
       .then(response => {
         return response.text();
@@ -51,7 +73,75 @@ function Users() {
         alert(data);
         getUsers();
       });
-  }*/
+  }
+
+  function updateUser(id, nome, datanasc, email) {
+    fetch(`http://localhost:3001/user/update/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({nome, datanasc, email}),
+    })
+      .then(response => {
+        return response.text();
+      })
+      .then(data => {
+        alert(data);
+        getUsers();
+      });
+  }
+
+  const toggle = () => setModal(!modal);
+
+  const toggleConfig = (titulo, tipo, data) => {
+    setModalTitle(titulo)
+    if(tipo=="edit"){
+      setUserId(data[0])
+      setNome(data[1]);
+      setDatanasc(data[2]);
+      setEmail(data[3]);
+    }
+    setModal(!modal);
+  };
+
+  const clearFields = () => {
+    setUserId("")
+    setNome("");
+    setDatanasc("");
+    setEmail("");
+  }
+
+  const handleCancel = () => {
+    clearFields
+    setModal(!modal)
+  };
+
+  const handleSubmitCadastro = (e) => {
+    e.preventDefault();
+    setModal(!modal);
+    createUser(nome, datanasc, email);
+  }
+
+  const handleSubmitEditar = (e) => {
+    e.preventDefault();
+    setModal(!modal);
+    updateUser(userId,nome, datanasc, email);
+  }
+
+  const handleChangeNome = (e) => {
+    setNome(e.target.value)
+    console.log(e.target.value)
+  };
+
+  const handleChangeEmail = (e) => {
+    setEmail(e.target.value)
+  };
+
+  const handleChangeDataNasc = (e) => {
+    setDatanasc(e.target.value)
+  };
 
   function templateTable(){
     return (
@@ -79,6 +169,11 @@ function Users() {
         return (
           <tr key={key}>
             {prop.data.map((prop, key) => {
+              if(key == 2){
+                let aux = prop.split(/-/g);
+                let newDateFormat = aux[2] + "/" + aux[1] + "/" + aux[0]
+                return <td key={key}>{newDateFormat}</td>;
+              }
               return <td key={key}>{prop}</td>;
             })}
             <td className="td-actions text-right">
@@ -87,6 +182,7 @@ function Users() {
                 color="info"
                 id="editUserButton"
                 type="button"
+                onClick={() => toggleConfig("Editar dados","edit", prop.data)}
               >
                 <i className="now-ui-icons ui-2_settings-90" />
               </Button>
@@ -130,6 +226,29 @@ function Users() {
       <PanelHeader size="sm" />
       <div className="content">
         <Row>
+        <Modal isOpen={modal} toggle={toggle} onClosed={clearFields}>
+          <ModalHeader toggle={toggle}>{modalTitle}</ModalHeader>
+          <ModalBody>
+            <Form>
+              <FormGroup>
+                <Label for="nomeInput">Nome</Label>
+                <Input type="text" name="nome" id="nomeInput" onChange={handleChangeNome} value={nome}/>
+              </FormGroup>
+              <FormGroup>
+                <Label for="datanascInput">Data de Nascimento</Label>
+                <Input type="date" name="datanasc" id="datanascInput" onChange={handleChangeDataNasc} value={datanasc}/>
+              </FormGroup>
+              <FormGroup>
+                <Label for="emailInput">Email</Label>
+                <Input type="email" name="email" id="emailInput" onChange={handleChangeEmail} value={email}/>
+              </FormGroup>
+            </Form>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="success" onClick={userId==""?handleSubmitCadastro:handleSubmitEditar}>Concluir</Button>
+            <Button color="danger" onClick={handleCancel}>Cancelar</Button>
+          </ModalFooter>
+        </Modal>
         <Col xs={12}>
             <Card>
               <CardHeader>
@@ -158,6 +277,13 @@ function Users() {
             </Card>
           </Col>
         </Row>
+        <Container>
+          <FloatingButton
+              tooltip="Adicionar Usuários"
+              icon="fas fa-plus"
+              rotate={false}
+              onClick={() => toggleConfig("Cadastrar novo usuário", "create")} />
+        </Container>
       </div>
     </>
   );

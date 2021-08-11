@@ -22,8 +22,18 @@ app.get('/', (req, res) => {
     })
   })
   
-  app.post('/users', (req, res) => {
+  app.post('/user', (req, res) => {
     user_model.createUser(req.body)
+    .then(response => {
+      res.status(200).send(response);
+    })
+    .catch(error => {
+      res.status(500).send(error);
+    })
+  })
+
+  app.put('/user/update/:id', (req, res) => {
+    user_model.updateUser(req.params.id, req.body)
     .then(response => {
       res.status(200).send(response);
     })

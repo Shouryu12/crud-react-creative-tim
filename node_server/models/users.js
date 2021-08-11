@@ -68,19 +68,19 @@ const getUsers = () => {
         if (error) {
           reject(error)
         }
-        resolve(`A new user has been added: ${results.rows[0]}`)
+        resolve(`Cadastro realizado com sucesso.`)
       })
     })
   }
 
-  const updateUser = (body) => {
+  const updateUser = (id, body) => {
     return new Promise(function(resolve, reject) {
-      const { id, nome, datanasc, email } = body
+      const { nome, datanasc, email } = body
       pool.query('UPDATE users SET nome = $1, datanasc = $2, email = $3 WHERE id = $4', [nome, datanasc, email, id], (error, results) => {
         if (error) {
           reject(error)
         }
-        resolve(`User updated`)
+        resolve(`Os dados do usuário foram atualizados.`)
       })
     })
   }
@@ -91,7 +91,7 @@ const getUsers = () => {
         if (error) {
           reject(error)
         }
-        resolve(`User deactivated with ID: ${id}`)
+        resolve(`O usuário foi desativado com sucesso.`)
       })
     })
   }
