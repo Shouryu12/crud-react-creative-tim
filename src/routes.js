@@ -23,6 +23,7 @@ import TableList from "views/TableList.js";
 import Maps from "views/Maps.js";
 import Upgrade from "views/Upgrade.js";
 import UserPage from "views/UserPage.js";
+import Users from "views/Users.js";
 
 var dashRoutes = [
   {
@@ -37,6 +38,13 @@ var dashRoutes = [
     name: "Icons",
     icon: "design_image",
     component: Icons,
+    layout: "/admin",
+  },
+  {
+    path: "/users",
+    name: "Users CRUD",
+    icon: "users_circle-08",
+    component: Users,
     layout: "/admin",
   },
   {
