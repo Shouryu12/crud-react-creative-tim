@@ -16,7 +16,8 @@ import {
   Form, 
   FormGroup, 
   Label, 
-  Input, 
+  Input,
+  Alert, 
   FormText 
 } from "reactstrap";
 
@@ -37,6 +38,11 @@ function Users() {
   const [nome, setNome] = useState("");
   const [datanasc, setDatanasc] = useState("");
   const [email, setEmail] = useState("");
+  const [visible, setVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("");
+
+  const onDismiss = () => setVisible(false);
 
   async function getUsers() {
     await fetch('http://localhost:3001').then(response => {
@@ -53,7 +59,7 @@ function Users() {
     }).then(response => {
         return response.text();
       }).then(data => {
-        alert(data);
+        handleAlert(data,"info");
         getUsers();
       });
   }
@@ -70,7 +76,7 @@ function Users() {
         return response.text();
       })
       .then(data => {
-        alert(data);
+        handleAlert(data,"info");
         getUsers();
       });
   }
@@ -88,7 +94,7 @@ function Users() {
         return response.text();
       })
       .then(data => {
-        alert(data);
+        handleAlert(data,"info");
         getUsers();
       });
   }
@@ -111,6 +117,12 @@ function Users() {
     setNome("");
     setDatanasc("");
     setEmail("");
+  }
+
+  const handleAlert = (message, type) => {
+    setVisible(true);
+    setAlertMessage(message);
+    setAlertType(type);
   }
 
   const handleCancel = () => {
@@ -143,7 +155,23 @@ function Users() {
     setDatanasc(e.target.value)
   };
 
-  function templateTable(){
+  function loadTableHeader(){
+    return (
+      <tr>
+        {thead.map((prop, key) => {
+          if (key === thead.length - 1)
+            return (
+              <th key={key} className="text-right">
+                {prop}
+              </th>
+            );
+          return <th key={key}>{prop}</th>;
+        })}
+      </tr>
+    );
+  }
+
+  function templateTableBody(){
     return (
       tbody.map((prop, key) => {
         return (
@@ -163,7 +191,7 @@ function Users() {
     );
   }
 
-  function loadTable() {
+  function loadTableBody() {
     return (
       users.map((prop, key) => {
         return (
@@ -214,19 +242,9 @@ function Users() {
     );
   }
 
-  useEffect(() => {
-    if(can){
-      setCan(false)
-      getUsers();
-    }
-  });
-
-  return (
-    <>
-      <PanelHeader size="sm" />
-      <div className="content">
-        <Row>
-        <Modal isOpen={modal} toggle={toggle} onClosed={clearFields}>
+  function loadModal() {
+    return (
+    <Modal isOpen={modal} toggle={toggle} onClosed={clearFields}>
           <ModalHeader toggle={toggle}>{modalTitle}</ModalHeader>
           <ModalBody>
             <Form>
@@ -249,6 +267,25 @@ function Users() {
             <Button color="danger" onClick={handleCancel}>Cancelar</Button>
           </ModalFooter>
         </Modal>
+    );
+  }
+
+  useEffect(() => {
+    if(can){
+      setCan(false)
+      getUsers();
+    }
+  });
+
+  return (
+    <>
+      <PanelHeader size="sm" />
+      <div className="content">
+        <Alert color={alertType} isOpen={visible} toggle={onDismiss}>
+          {alertMessage}
+        </Alert>
+        {loadModal()}
+        <Row>
         <Col xs={12}>
             <Card>
               <CardHeader>
@@ -257,20 +294,10 @@ function Users() {
               <CardBody>
                 <Table responsive>
                   <thead className="text-primary">
-                    <tr>
-                      {thead.map((prop, key) => {
-                        if (key === thead.length - 1)
-                          return (
-                            <th key={key} className="text-right">
-                              {prop}
-                            </th>
-                          );
-                        return <th key={key}>{prop}</th>;
-                      })}
-                    </tr>
+                    {loadTableHeader()}
                   </thead>
                   <tbody>
-                    {users?loadTable():templateTable()}
+                    {users?loadTableBody():templateTableBody()}
                   </tbody>
                 </Table>
               </CardBody>
